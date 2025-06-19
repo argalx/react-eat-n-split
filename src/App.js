@@ -1,3 +1,6 @@
+import { useState } from "react";
+
+// Initial friends data
 const initialFriends = [
   {
     id: 118836,
@@ -19,15 +22,40 @@ const initialFriends = [
   },
 ];
 
+// Reusable components
+
+// Component for the button used in various places
+function Button({ children, onClick }) {
+  return (
+    <button className="button" onClick={onClick}>
+      {children}
+    </button>
+  );
+}
+
 // Main component of the app
 export default function App() {
+  // State to manage the visibility of the form to add a new friend
+  const [formAddFriendIsOpen, setFormAddFriendIsOpen] = useState(false);
+
+  // Function to toggle the visibility of the form to add a new friend
+  function toggleFormAddFriend() {
+    setFormAddFriendIsOpen((isOpen) => !isOpen);
+  }
+
   return (
     <div className="app">
       <div className="sidebar">
         {/* // Friend list and form to add a new friend */}
         <FriendsList />
-        <FormAddFriend />
-        <Button>Add friend</Button>
+
+        {/* // Display the form to add a new friend if it's open */}
+        {formAddFriendIsOpen && <FormAddFriend />}
+
+        {/* // Button to toggle the form to add a new friend */}
+        <Button onClick={toggleFormAddFriend}>
+          {formAddFriendIsOpen ? "Close" : "Add friend"}
+        </Button>
       </div>
       {/* // Split bill form */}
       <FormSplitBill />
@@ -74,11 +102,6 @@ function Friend({ friend }) {
       <Button>Select</Button>
     </li>
   );
-}
-
-// Component for the button used in various places
-function Button({ children }) {
-  return <button className="button">{children}</button>;
 }
 
 // Component to add a new friend
