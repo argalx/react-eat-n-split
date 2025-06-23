@@ -38,7 +38,11 @@ export default function App() {
   // State to manage the visibility of the form to add a new friend
   const [formAddFriendIsOpen, setFormAddFriendIsOpen] = useState(false);
 
+  // State to manage the list of friends
   const [friends, setFriends] = useState(initialFriends);
+
+  // State to manage the selected friend (not used in this example, but can be extended)
+  const [selectedFriend, setSelectedFriend] = useState(null);
 
   // Function to toggle the visibility of the form to add a new friend
   function toggleFormAddFriend() {
@@ -54,11 +58,25 @@ export default function App() {
     setFormAddFriendIsOpen((isOpen) => !isOpen);
   }
 
+  // Function to handle selecting a friend (not fully implemented in this example)
+  function handleSelectFriend(friend) {
+    // Set the selected friend or toggle selection if the same friend is clicked using optional chaining
+    setSelectedFriend((prevSelected) =>
+      prevSelected?.id === friend.id ? null : friend
+    );
+    // Close the form to add a new friend when a friend is selected
+    setFormAddFriendIsOpen(false);
+  }
+
   return (
     <div className="app">
       <div className="sidebar">
         {/* // Friend list and form to add a new friend */}
-        <FriendsList friends={friends} />
+        <FriendsList
+          friends={friends}
+          onSelectFriend={handleSelectFriend}
+          selectedFriend={selectedFriend}
+        />
 
         {/* // Display the form to add a new friend if it's open */}
         {formAddFriendIsOpen && <FormAddFriend onAddFriend={handleAddFriend} />}
@@ -69,27 +87,36 @@ export default function App() {
         </Button>
       </div>
       {/* // Split bill form */}
-      <FormSplitBill />
+      {/* // Display the form to split a bill with a selected friend */}
+      {selectedFriend && <FormSplitBill friend={selectedFriend} />}
     </div>
   );
 }
 
 // Component to display the list of friends
-function FriendsList({ friends }) {
+function FriendsList({ friends, onSelectFriend, selectedFriend }) {
   return (
     <ul>
       {/* // Map through the friends array and render each Friend component */}
       {friends.map((friend) => (
-        <Friend key={friend.id} friend={friend} />
+        <Friend
+          key={friend.id}
+          friend={friend}
+          onSelectFriend={onSelectFriend}
+          selectedFriend={selectedFriend}
+        />
       ))}
     </ul>
   );
 }
 
 // Component to display each friend's information
-function Friend({ friend }) {
+function Friend({ friend, onSelectFriend, selectedFriend }) {
+  // Check if the current friend is selected using optional chaining
+  const isSelected = selectedFriend?.id === friend.id;
+
   return (
-    <li>
+    <li className={isSelected ? "selected" : ""}>
       {/* // Display friend's image */}
       <img src={friend.image} alt={friend.name} />
 
@@ -108,7 +135,9 @@ function Friend({ friend }) {
         </p>
       )}
       {friend.balance === 0 && <p>You and {friend.name} are even</p>}
-      <Button>Select</Button>
+      <Button onClick={() => onSelectFriend(friend)}>
+        {isSelected ? "Close" : "Select"}
+      </Button>
     </li>
   );
 }
@@ -167,10 +196,10 @@ function FormAddFriend({ onAddFriend }) {
 }
 
 // Component to split a bill with a friend
-function FormSplitBill() {
+function FormSplitBill({ friend }) {
   return (
     <form className="form-split-bill">
-      <h2>Split a bill with X</h2>
+      <h2>Split a bill with {friend.name}</h2>
 
       <label>💰 Bill value</label>
       <input type="text" />
@@ -178,13 +207,13 @@ function FormSplitBill() {
       <label>🧒 Your expense</label>
       <input type="text" />
 
-      <label>👭 X's expense</label>
+      <label>👭 {friend.name}'s expense</label>
       <input type="text" disabled />
 
       <label>🤑 Who is paying the bill</label>
       <select>
         <option value="user">You</option>
-        <option value="friend">X</option>
+        <option value="friend">{friend.name}</option>
       </select>
 
       <Button>Split bill</Button>
