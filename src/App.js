@@ -38,8 +38,19 @@ export default function App() {
   // State to manage the visibility of the form to add a new friend
   const [formAddFriendIsOpen, setFormAddFriendIsOpen] = useState(false);
 
+  const [friends, setFriends] = useState(initialFriends);
+
   // Function to toggle the visibility of the form to add a new friend
   function toggleFormAddFriend() {
+    setFormAddFriendIsOpen((isOpen) => !isOpen);
+  }
+
+  // Function to handle adding a new friend
+  function handleAddFriend(newFriend) {
+    // Add the new friend to the friends state
+    setFriends((prevFriends) => [...prevFriends, newFriend]);
+
+    // Close the form after adding the friend
     setFormAddFriendIsOpen((isOpen) => !isOpen);
   }
 
@@ -47,10 +58,10 @@ export default function App() {
     <div className="app">
       <div className="sidebar">
         {/* // Friend list and form to add a new friend */}
-        <FriendsList />
+        <FriendsList friends={friends} />
 
         {/* // Display the form to add a new friend if it's open */}
-        {formAddFriendIsOpen && <FormAddFriend />}
+        {formAddFriendIsOpen && <FormAddFriend onAddFriend={handleAddFriend} />}
 
         {/* // Button to toggle the form to add a new friend */}
         <Button onClick={toggleFormAddFriend}>
@@ -64,9 +75,7 @@ export default function App() {
 }
 
 // Component to display the list of friends
-function FriendsList() {
-  const friends = initialFriends;
-
+function FriendsList({ friends }) {
   return (
     <ul>
       {/* // Map through the friends array and render each Friend component */}
@@ -105,14 +114,52 @@ function Friend({ friend }) {
 }
 
 // Component to add a new friend
-function FormAddFriend() {
+function FormAddFriend({ onAddFriend }) {
+  // State to manage the friend's name and image URL
+  const [friendName, setFriendName] = useState("");
+  const [imageUrl, setImageUrl] = useState("https://i.pravatar.cc/48");
+
+  // Function to handle form submission
+  function handleSubmit(e) {
+    // Prevent the default form submission behavior
+    e.preventDefault();
+
+    // Check if the friend name is empty
+    if (!friendName || !imageUrl) return;
+
+    // Check if the image URL is empty, if so, set a default image URL
+    const id = crypto.randomUUID(); // Generate a unique ID for the new friend
+    // create a new friend object with the current state values
+    const newFriend = {
+      id: id, // Generate a unique ID for the new friend
+      name: friendName,
+      image: `${imageUrl}?=${id}`, // Use the image URL with the unique ID
+      balance: 0,
+    };
+
+    // Call the onAddFriend function passed as a prop with the new friend object
+    onAddFriend(newFriend);
+
+    // Reset the form fields
+    setFriendName("");
+    setImageUrl("https://i.pravatar.cc/48");
+  }
+
   return (
-    <form className="form-add-friend">
+    <form className="form-add-friend" onSubmit={handleSubmit}>
       <label>👭 Friend name</label>
-      <input type="text" />
+      <input
+        type="text"
+        value={friendName}
+        onChange={(e) => setFriendName(e.target.value)}
+      />
 
       <label>🖼 Image URL</label>
-      <input type="text" />
+      <input
+        type="text"
+        value={imageUrl}
+        onChange={(e) => setImageUrl(e.target.value)}
+      />
 
       <Button>Add</Button>
     </form>
