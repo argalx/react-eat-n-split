@@ -68,6 +68,24 @@ export default function App() {
     setFormAddFriendIsOpen(false);
   }
 
+  // Function to handle splitting a bill with the selected friend
+  function handleSplitBill(value) {
+    // Check if a friend is selected
+    setFriends((friends) =>
+      friends.map((friend) =>
+        // Update the balance of the selected friend by adding the value
+        friend.id === selectedFriend.id
+          ? { ...friend, balance: friend.balance + value }
+          : friend
+      )
+    );
+
+    // Reset the selected friend to null
+    setSelectedFriend(null);
+    // Close the form to add a new friend
+    setFormAddFriendIsOpen(false);
+  }
+
   return (
     <div className="app">
       <div className="sidebar">
@@ -88,7 +106,9 @@ export default function App() {
       </div>
       {/* // Split bill form */}
       {/* // Display the form to split a bill with a selected friend */}
-      {selectedFriend && <FormSplitBill friend={selectedFriend} />}
+      {selectedFriend && (
+        <FormSplitBill friend={selectedFriend} onSplitBill={handleSplitBill} />
+      )}
     </div>
   );
 }
@@ -196,7 +216,7 @@ function FormAddFriend({ onAddFriend }) {
 }
 
 // Component to split a bill with a friend
-function FormSplitBill({ friend }) {
+function FormSplitBill({ friend, onSplitBill }) {
   // State to manage the bill amount, what the user has paid, and who is paying
   const [bill, setBill] = useState("");
   const [paidByUser, setPaidByUser] = useState("");
@@ -206,8 +226,23 @@ function FormSplitBill({ friend }) {
   // If the bill is not set, paidByFriend will be an empty string
   const paidByFriend = bill ? bill - paidByUser : "";
 
+  function handleSubmit(e) {
+    // Prevent the default form submission behavior
+    e.preventDefault();
+
+    // Check if the bill and paidByUser values are valid numbers
+    if (!bill || !paidByUser) return;
+
+    onSplitBill(
+      // Call the onSplitBill function passed as a prop with the calculated values
+      // Pass the values based on who is paying
+      // If the user is paying, pass the paidByFriend value, otherwise pass the negative of paidByUser
+      whoIsPaying === "user" ? paidByFriend : -paidByUser
+    );
+  }
+
   return (
-    <form className="form-split-bill">
+    <form className="form-split-bill" onSubmit={handleSubmit}>
       <h2>Split a bill with {friend.name}</h2>
 
       <label>💰 Bill value</label>
